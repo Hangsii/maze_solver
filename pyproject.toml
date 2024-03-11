@@ -1,0 +1,15 @@
+[project]
+name = "marble_maze"
+version = "0.0.1"
+
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "networkx ~= 3.2.1",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==8.1.1"
+]
