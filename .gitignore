@@ -1,3 +1,4 @@
 build/
 marble_maze.egg-info/
 .idea/
+**/.ipynb_checkpoints/
