@@ -7,6 +7,10 @@ requires-python = ">=3.9"
 
 dependencies = [
     "networkx ~= 3.2.1",
+    "opencv-python~=4.9.0.80",
+    "matplotlib~=3.8.3",
+    "scipy~=1.12.0",
+    "tqdm~=4.66.2"
 ]
 
 [project.optional-dependencies]
