@@ -151,7 +151,7 @@ def generic_search_algorithm(frontier, visited_set: Set, difficulty_map, output_
     return output_values
 
 
-def make_naive_graph_path(maze_path_img):
+def make_naive_graph_path(maze_path_img) -> np.ndarray:
     # start with the blue endzone
     endzone = maze_path_img[:, :, 2]
     # Step 1: Prepare a blank image
@@ -181,11 +181,20 @@ def make_naive_graph_path(maze_path_img):
 
 
 if __name__ == "__main__":
-    maze_path_manual = load_photo(src_root / "data" / "maze_path_manual.png")
-    print(src_root)
+    annotated_route_path = src_root / "data" / "maze_path_manual.png"
+    maze_path_manual = load_photo(annotated_route_path)
+    print(f"src_root: {src_root}")
+    print(f"manual annotation file location: {annotated_route_path}")
     viz(maze_path_manual)
     mini_maze_path = cv2.resize(maze_path_manual, None, fx=0.1, fy=0.1, interpolation=cv2.INTER_LINEAR)
 
     gradient_map = make_naive_graph_path(maze_path_manual)
     # gradient_map = make_naive_graph_path(mini_maze_path)
     viz(gradient_map)
+
+    outdir = src_root / "output"
+    outdir.mkdir(exist_ok=True)
+    outpath = outdir / "cost.csv"
+
+    print(f"Writing output to: {outpath}")
+    np.savetxt(outpath, gradient_map, delimiter='\t')
