@@ -2,7 +2,6 @@ from functools import reduce
 from typing import Set
 from pathlib import Path
 
-
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,6 +22,7 @@ def load_photo(img_path=default_img_path):
 def viz(cv_img):
     plt.imshow(cv_img)
     plt.show()
+
 
 bug_counter = 0
 
@@ -78,7 +78,7 @@ def create_fitness_score(element, difficulty_map, output_values):
             if output_values[x, y] != np.inf:  # 0 is valid
                 # make contextualised score
                 if x != x_current and y != y_current:
-                    candidate_score = output_values[x, y] + sqrt2*penalty
+                    candidate_score = output_values[x, y] + sqrt2 * penalty
                 else:
                     candidate_score = output_values[x, y] + penalty
 
@@ -98,7 +98,6 @@ def create_fitness_score(element, difficulty_map, output_values):
 
 
 def get_pixel_penalty(difficulty_map, element):
-
     x_current, y_current = element
 
     # distance penalty: lower on the prescribed path:
