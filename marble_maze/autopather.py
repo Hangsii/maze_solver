@@ -215,7 +215,7 @@ if __name__ == "__main__":
     print(f"src_root: {src_root}")
     print(f"manual annotation file location: {annotated_route_path}")
     viz(maze_path_manual)
-    mini_maze_path = cv2.resize(maze_path_manual, None, fx=0.1, fy=0.1, interpolation=cv2.INTER_LINEAR)
+    # mini_maze_path = cv2.resize(maze_path_manual, None, fx=0.1, fy=0.1, interpolation=cv2.INTER_LINEAR)
 
     gradient_map = make_naive_graph_path(maze_path_manual)
     # gradient_map = make_naive_graph_path(mini_maze_path)
