@@ -6,7 +6,7 @@ from pathlib import Path
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm, trange
+from tqdm import trange
 
 src_root = Path().resolve()
 print(list(src_root.iterdir()))
@@ -44,9 +44,6 @@ def get_unvisited_neighbours(element, matrix_shape, visited_set, frontier_set):
         if candidate_element == element:
             # do not readd the current node
             continue
-        # elif candidate_element in frontier_set:
-        #     # do not schedule for multiple visits
-        #     continue
         elif candidate_element not in visited_set:
             elements_to_visit.append(candidate_element)
         else:
@@ -116,7 +113,6 @@ def get_pixel_penalty(difficulty_map, element):
 
 
 def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, output_values):
-    # frontier_set = [seed_coord]
     frontier_set = {0: seed_coord}
 
     # set up a min-heap to manage automatically sorting the queue
@@ -132,7 +128,6 @@ def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, outpu
     progress_iterator = iter(progress)
 
     while len(frontier_set) > 0:
-        # for element,  in frontier_set:
         key = heapq.heappop(queue)
         element = frontier_set[key]
         del frontier_set[key]
@@ -140,8 +135,7 @@ def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, outpu
         if element in visited_set:
             # already seen - skip
             continue
-        # frontier_set.remove(element)  # actually not necessary - used as a preset for visited status
-        # print(element)
+
         current_element_fitness_score = create_fitness_score(element, difficulty_map, output_values)
         output_values[element] = current_element_fitness_score
         # Visit complete, come again soon!
@@ -149,20 +143,15 @@ def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, outpu
 
         unvisited_neighbours = get_unvisited_neighbours(element, matrix_shape, visited_set, frontier_set)
 
-        # visited_set[element] = 1
-        # breadth first search - elements are added to the back of the frontier queue
-        # [frontier_set.add(neighbour) for neighbour in unvisited_neighbours]
-
-        # frontier_set.extend(unvisited_neighbours)
-
-        new_keys = [extend_dict_non_clobbering(frontier_set, neighbour, current_element_fitness_score+taxicab_heuristic(neighbour, seed_coord)) for neighbour in
-         unvisited_neighbours]
+        new_keys = [extend_dict_non_clobbering(
+                frontier_set,
+                neighbour,
+                current_element_fitness_score+taxicab_heuristic(neighbour, seed_coord)
+            ) for neighbour in unvisited_neighbours
+        ]
 
         for new_key in new_keys:
             heapq.heappush(queue, new_key)
-
-        # print(f"Frontier size: {len(frontier)}")
-        # print(f"Visited Set size: {len(visited_set)}")
 
         next(progress_iterator)
     progress.close()
@@ -193,24 +182,15 @@ def make_naive_graph_path(maze_path_img) -> np.ndarray:
     endzone = maze_path_img[:, :, 2]
     # Step 1: Prepare a blank image
     score_matrix = np.full(endzone.shape[:2], dtype="float64", fill_value=np.inf)  # Creating a black canvas
-    # score_matrix = np.empty(endzone.shape[:2], dtype="float64", cval=np.inf)  # Creating a black canvas
-    # visited_matrix = np.zeros(endzone.shape[:2], dtype="uint8")  # Creating a black canvas
-
-    # = np.full((2, 2), None)  # np.inf
 
     endzone_xs, endzone_ys = np.where(endzone)
     # any pixel in the endzone will do
     seed_pixel_coords = (endzone_xs[0], endzone_ys[0])
     print(f"seed pixel selected: {seed_pixel_coords}")
     score_matrix[seed_pixel_coords] = 0
-    # visited_matrix[seed_pixel_coords] = 1
 
     visited_set = set()
-    # Make the frontier a dictionary so we can check membership efficiently and also keep the order of appendage
-    # frontier = defaultdict()
-    # frontier[seed_pixel_coords]=None
 
-    # print(seed_pixel_coords)
     scored_pixels = generic_search_algorithm(seed_coord=seed_pixel_coords, visited_set=visited_set,
                                              difficulty_map=maze_path_img, output_values=score_matrix)
 
