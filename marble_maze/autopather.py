@@ -1,3 +1,4 @@
+import heapq
 from functools import cache, reduce
 from typing import Set
 from pathlib import Path
@@ -118,6 +119,10 @@ def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, outpu
     # frontier_set = [seed_coord]
     frontier_set = {0: seed_coord}
 
+    # set up a min-heap to manage automatically sorting the queue
+    queue = []
+    heapq.heappush(queue, 0)
+
     matrix_shape = output_values.shape
 
     # tqdm progress bar up to the number of pixels
@@ -128,7 +133,8 @@ def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, outpu
 
     while len(frontier_set) > 0:
         # for element,  in frontier_set:
-        key, element = next(iter(frontier_set.items()))
+        key = heapq.heappop(queue)
+        element = frontier_set[key]
         del frontier_set[key]
 
         if element in visited_set:
@@ -149,12 +155,14 @@ def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, outpu
 
         # frontier_set.extend(unvisited_neighbours)
 
-        [extend_dict_non_clobbering(frontier_set, neighbour, current_element_fitness_score+taxicab_heuristic(neighbour, seed_coord)) for neighbour in
+        new_keys = [extend_dict_non_clobbering(frontier_set, neighbour, current_element_fitness_score+taxicab_heuristic(neighbour, seed_coord)) for neighbour in
          unvisited_neighbours]
+
+        for new_key in new_keys:
+            heapq.heappush(queue, new_key)
+
         # print(f"Frontier size: {len(frontier)}")
         # print(f"Visited Set size: {len(visited_set)}")
-
-        frontier_set = {key: frontier_set[key] for key in sorted(frontier_set)}
 
         next(progress_iterator)
     progress.close()
@@ -165,12 +173,12 @@ def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, outpu
 def extend_dict_non_clobbering(dictionary, new_element, new_cost):
     if new_cost not in dictionary:
         dictionary[new_cost] = new_element
-        return
+        return new_cost
     else:
         # increase cost by a tiny amount - less than the map would use!
         new_cost = new_cost + 0.000000001
-        extend_dict_non_clobbering(dictionary, new_element, new_cost)
-        return
+        return extend_dict_non_clobbering(dictionary, new_element, new_cost)
+
 
 
 @cache
