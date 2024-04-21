@@ -1,4 +1,4 @@
-from functools import reduce
+from functools import cache, reduce
 from typing import Set
 from pathlib import Path
 
@@ -114,8 +114,10 @@ def get_pixel_penalty(difficulty_map, element):
     return penalty
 
 
-def generic_search_algorithm(frontier, visited_set: Set, difficulty_map, output_values):
-    # frontier_set = set(frontier)
+def generic_search_algorithm(seed_coord, visited_set: Set, difficulty_map, output_values):
+    # frontier_set = [seed_coord]
+    frontier_set = {0: seed_coord}
+
     matrix_shape = output_values.shape
 
     # tqdm progress bar up to the number of pixels
@@ -124,30 +126,58 @@ def generic_search_algorithm(frontier, visited_set: Set, difficulty_map, output_
     progress = trange(total_pixels)
     progress_iterator = iter(progress)
 
-    for element in frontier:
+    while len(frontier_set) > 0:
+        # for element,  in frontier_set:
+        key, element = next(iter(frontier_set.items()))
+        del frontier_set[key]
+
         if element in visited_set:
             # already seen - skip
             continue
         # frontier_set.remove(element)  # actually not necessary - used as a preset for visited status
         # print(element)
-        output_values[element] = create_fitness_score(element, difficulty_map, output_values)
-
+        current_element_fitness_score = create_fitness_score(element, difficulty_map, output_values)
+        output_values[element] = current_element_fitness_score
         # Visit complete, come again soon!
         visited_set.add(element)
 
-        unvisited_neighbours = get_unvisited_neighbours(element, matrix_shape, visited_set, frontier)
+        unvisited_neighbours = get_unvisited_neighbours(element, matrix_shape, visited_set, frontier_set)
 
         # visited_set[element] = 1
         # breadth first search - elements are added to the back of the frontier queue
         # [frontier_set.add(neighbour) for neighbour in unvisited_neighbours]
-        frontier.extend(unvisited_neighbours)
+
+        # frontier_set.extend(unvisited_neighbours)
+
+        [extend_dict_non_clobbering(frontier_set, neighbour, current_element_fitness_score+taxicab_heuristic(neighbour, seed_coord)) for neighbour in
+         unvisited_neighbours]
         # print(f"Frontier size: {len(frontier)}")
         # print(f"Visited Set size: {len(visited_set)}")
+
+        frontier_set = {key: frontier_set[key] for key in sorted(frontier_set)}
 
         next(progress_iterator)
     progress.close()
 
     return output_values
+
+
+def extend_dict_non_clobbering(dictionary, new_element, new_cost):
+    if new_cost not in dictionary:
+        dictionary[new_cost] = new_element
+        return
+    else:
+        # increase cost by a tiny amount - less than the map would use!
+        new_cost = new_cost + 0.000000001
+        extend_dict_non_clobbering(dictionary, new_element, new_cost)
+        return
+
+
+@cache
+def taxicab_heuristic(input_coords, goal_coords):
+    in_x, in_y = input_coords
+    goal_x, goal_y = goal_coords
+    return abs(goal_x - in_x) + abs(goal_y - in_y)
 
 
 def make_naive_graph_path(maze_path_img) -> np.ndarray:
@@ -173,7 +203,7 @@ def make_naive_graph_path(maze_path_img) -> np.ndarray:
     # frontier[seed_pixel_coords]=None
 
     # print(seed_pixel_coords)
-    scored_pixels = generic_search_algorithm(frontier=[seed_pixel_coords], visited_set=visited_set,
+    scored_pixels = generic_search_algorithm(seed_coord=seed_pixel_coords, visited_set=visited_set,
                                              difficulty_map=maze_path_img, output_values=score_matrix)
 
     return scored_pixels
