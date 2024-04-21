@@ -227,3 +227,5 @@ if __name__ == "__main__":
 
     print(f"Writing output to: {outpath}")
     np.savetxt(outpath, gradient_map, delimiter='\t')
+
+    cv2.imwrite(str(outdir / "cost.png"), gradient_map)
