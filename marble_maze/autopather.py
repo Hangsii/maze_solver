@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import trange
 
-src_root = Path().resolve()
+src_root = Path(__file__).resolve().parent
 print(list(src_root.iterdir()))
 
 default_img_path = src_root / "data" / "maze.png"
